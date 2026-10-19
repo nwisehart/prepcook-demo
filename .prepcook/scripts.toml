@@ -1,0 +1,28 @@
+# How Prep Cook installs, starts, seeds and tests Pantry. Schema: docs/scripts.md
+# in the Prep Cook repository.
+
+[app]
+setup = "npm ci"
+# server.js listens on $PORT (Prep Cook sets it to the port it allocated), else
+# 3000.
+start = "node server.js"
+# /health answers 200 as soon as the server is up; the seed runs after it.
+ready = { url = "/health", timeout_secs = 60 }
+# Recreates data/pantry.json (or $PANTRY_DATA_FILE) from scratch with fresh
+# random passwords, and appends the test login to $PREPCOOK_ENV_OUT.
+seed = "node scripts/seed.js"
+test = "npm test"
+
+[profile]
+name = "Pantry"
+summary = "Pantry is a small grocery-list web app for a household. People sign in with an email and password (accounts are created by an administrator; there is no sign-up), keep one or more lists, add items with a quantity, tick them off as bought while a running count in the list header shows how many are still to buy, and share a list with another person by typing their email, after which it appears on that person's page under \"Shared with me\". It is a Node and Express server rendering plain HTML forms, with no client-side JavaScript, storing everything in one JSON file."
+areas = ["Sign-in", "Lists", "Items", "Sharing"]
+# /health and every page report SeedMissing when the data file is absent.
+error_patterns = ["SeedMissing"]
+evidence_tools = "There is no production log access: the app's own log is the only record of a request."
+
+[[profile.evidence]]
+kind = "log_files"
+label = "Pantry app log"
+paths = ["logs/app.log"]
+notes = "One JSON line per request (method, path, status, duration, user id) and one per error, with the stack trace."
